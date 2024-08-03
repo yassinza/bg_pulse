@@ -4,10 +4,11 @@ import 'package:flutter/material.dart';
 import 'package:live_activities/live_activities.dart';
 import 'package:live_activities/models/live_activity_image.dart';
 import 'package:live_activities/models/url_scheme_data.dart';
+import 'package:live_activities_example/services/libre_service.dart';
 
-import 'models/football_game_live_activity_model.dart';
-import 'widgets/score_widget.dart';
-
+import 'models/glucose_live_activity_model.dart';
+import 'models/glucose_reading.dart';
+import 'widgets/glucose_widget.dart';
 
 void main() {
   runApp(const MyApp());
@@ -37,20 +38,25 @@ class Home extends StatefulWidget {
 }
 
 class _HomeState extends State<Home> {
+  late LibreLinkUpConnection _libreConnection;
+  List<GlucoseReading> _readings = [];
+  bool _isConnecting = false;
+  bool _isConnected = false;
+  late Timer _timer;
+
   final _liveActivitiesPlugin = LiveActivities();
   String? _latestActivityId;
   StreamSubscription<UrlSchemeData>? urlSchemeSubscription;
-  FootballGameLiveActivityModel? _footballGameLiveActivityModel;
-
-  int teamAScore = 0;
-  int teamBScore = 0;
-
-  String teamAName = 'PSG';
-  String teamBName = 'Chelsea';
+  GlucoseLiveActivityModel? _glucoseLiveActivityModel;
 
   @override
   void initState() {
     super.initState();
+
+    _libreConnection =
+        LibreLinkUpConnection('yassin.z.aa@gmail.com', 'Vub7n2tx768QKN8g2gvM');
+
+    _connectAndFetchReadings();
 
     _liveActivitiesPlugin.init(
       appGroupId: 'group.diapulse',
@@ -63,14 +69,14 @@ class _HomeState extends State<Home> {
     urlSchemeSubscription =
         _liveActivitiesPlugin.urlSchemeStream().listen((schemeData) {
       setState(() {
-        if (schemeData.path == '/stats') {
+        if (schemeData.path == '/glucose') {
           showDialog(
             context: context,
             builder: (BuildContext context) {
               return AlertDialog(
-                title: const Text('Stats 📊'),
+                title: const Text('Glucose Reading 📊'),
                 content: Text(
-                  'Now playing final world cup between $teamAName and $teamBName\n\n$teamAName score: $teamAScore\n$teamBName score: $teamBScore',
+                  'Latest glucose reading: ${_readings.isNotEmpty ? _readings.last.value : "N/A"} mg/dL',
                 ),
                 actions: [
                   TextButton(
@@ -84,12 +90,63 @@ class _HomeState extends State<Home> {
         }
       });
     });
+
+    // Set up a timer to fetch readings periodically
+    _timer = Timer.periodic(Duration(minutes: 5), (timer) {
+      _fetchReadings();
+    });
+  }
+
+  Future<void> _connectAndFetchReadings() async {
+    setState(() {
+      _isConnecting = true;
+    });
+
+    try {
+      await _libreConnection.connectConnection();
+      setState(() {
+        _isConnected = true;
+      });
+      await _fetchReadings();
+    } catch (e) {
+      print('Error connecting: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to connect: $e')),
+      );
+    } finally {
+      setState(() {
+        _isConnecting = false;
+      });
+    }
+  }
+
+  Future<void> _fetchReadings() async {
+    if (!_isConnected) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Not connected. Please connect first.')),
+      );
+      return;
+    }
+
+    try {
+      final readings = await _libreConnection.processFetch();
+      setState(() {
+        _readings = readings;
+      });
+      _updateGlucoseLiveActivity();
+    } catch (e) {
+      print('Error fetching readings: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to fetch readings: $e')),
+      );
+    }
   }
 
   @override
   void dispose() {
     urlSchemeSubscription?.cancel();
     _liveActivitiesPlugin.dispose();
+    _timer.cancel();
     super.dispose();
   }
 
@@ -98,13 +155,13 @@ class _HomeState extends State<Home> {
     return Scaffold(
       appBar: AppBar(
         title: const Text(
-          'Live Activities (Flutter)',
+          'Glucose Live Activities',
           style: TextStyle(
             fontSize: 19,
             color: Colors.white,
           ),
         ),
-        backgroundColor: Colors.green,
+        backgroundColor: Colors.blue,
       ),
       body: SizedBox.expand(
         child: Padding(
@@ -119,33 +176,8 @@ class _HomeState extends State<Home> {
                     child: SizedBox(
                       width: double.infinity,
                       height: 120,
-                      child: Row(
-                        children: [
-                          Expanded(
-                            child: ScoreWidget(
-                              score: teamAScore,
-                              teamName: teamAName,
-                              onScoreChanged: (score) {
-                                setState(() {
-                                  teamAScore = score < 0 ? 0 : score;
-                                });
-                                _updateScore();
-                              },
-                            ),
-                          ),
-                          Expanded(
-                            child: ScoreWidget(
-                              score: teamBScore,
-                              teamName: teamBName,
-                              onScoreChanged: (score) {
-                                setState(() {
-                                  teamBScore = score < 0 ? 0 : score;
-                                });
-                                _updateScore();
-                              },
-                            ),
-                          ),
-                        ],
+                      child: GlucoseWidget(
+                        reading: _readings.isNotEmpty ? _readings.last : null,
                       ),
                     ),
                   ),
@@ -153,37 +185,11 @@ class _HomeState extends State<Home> {
               if (_latestActivityId == null)
                 TextButton(
                   onPressed: () async {
-                    _footballGameLiveActivityModel =
-                        FootballGameLiveActivityModel(
-                      matchName: 'World cup ⚽️',
-                      teamAName: 'PSG',
-                      teamAState: 'Home',
-                      teamALogo: LiveActivityImageFromAsset(
-                        'assets/images/psg.png',
-                      ),
-                      teamBLogo: LiveActivityImageFromAsset(
-                        'assets/images/chelsea.png',
-                      ),
-                      teamBName: 'Chelsea',
-                      teamBState: 'Guest',
-                      matchStartDate: DateTime.now(),
-                      matchEndDate: DateTime.now().add(
-                        const Duration(
-                          minutes: 6,
-                          seconds: 30,
-                        ),
-                      ),
-                    );
-
-                    final activityId =
-                        await _liveActivitiesPlugin.createActivity(
-                      _footballGameLiveActivityModel!.toMap(),
-                    );
-                    setState(() => _latestActivityId = activityId);
+                    await _startGlucoseLiveActivity();
                   },
                   child: const Column(
                     children: [
-                      Text('Start football match ⚽️'),
+                      Text('Start Glucose Monitoring 🩸'),
                       Text(
                         '(start a new live activity)',
                         style: TextStyle(
@@ -229,7 +235,7 @@ class _HomeState extends State<Home> {
                   },
                   child: const Column(
                     children: [
-                      Text('Stop match ✋'),
+                      Text('Stop Monitoring ✋'),
                       Text(
                         '(end all live activities)',
                         style: TextStyle(
@@ -247,19 +253,39 @@ class _HomeState extends State<Home> {
     );
   }
 
-  Future _updateScore() async {
-    if (_footballGameLiveActivityModel == null) {
-      return;
-    }
-
-    final data = _footballGameLiveActivityModel!.copyWith(
-      teamAScore: teamAScore,
-      teamBScore: teamBScore,
-      // teamAName: null,
+Future<void> _startGlucoseLiveActivity() async {
+  if (_readings.isEmpty) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('No glucose readings available.')),
     );
-    return _liveActivitiesPlugin.updateActivity(
-      _latestActivityId!,
-      data.toMap(),
-    );
+    return;
   }
+
+  final reading = _readings.last;
+  final activityAttributes = {
+    'value': reading.value,
+    'trend': reading.trendArrow,
+    'emoji': reading.emoji,
+    'timestamp': reading.timestamp.millisecondsSinceEpoch,
+  };
+
+  final activityId = await _liveActivitiesPlugin.createActivity(activityAttributes);
+  setState(() => _latestActivityId = activityId);
+}
+
+Future<void> _updateGlucoseLiveActivity() async {
+  if (_latestActivityId == null || _readings.isEmpty) {
+    return;
+  }
+
+  final reading = _readings.last;
+  final activityAttributes = {
+    'value': reading.value,
+    'trend': reading.trendArrow,
+    'emoji': reading.emoji,
+    'timestamp': reading.timestamp.millisecondsSinceEpoch,
+  };
+
+  await _liveActivitiesPlugin.updateActivity(_latestActivityId!, activityAttributes);
+}
 }
