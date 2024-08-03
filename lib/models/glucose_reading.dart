@@ -30,7 +30,6 @@ class GlucoseReading {
     };
   }
 
-
   static String _determineTrend(int? trendArrow) {
     switch (trendArrow) {
       case 1:
@@ -54,6 +53,17 @@ class GlucoseReading {
         return '↓';
       default:
         return '→';
+    }
+  }
+
+  String get trendColor {
+    switch (trend) {
+      case 'rising':
+        return 'orange';
+      case 'falling':
+        return 'red';
+      default:
+        return 'green';
     }
   }
 }

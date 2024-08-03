@@ -4,15 +4,15 @@ class GlucoseLiveActivityModel {
   final double value;
   final String trend;
   final DateTime timestamp;
-  final String emoji;
   final String trendArrow;
+  final String trendColor;
   final List<double> readings; //last 5 readings
 
   GlucoseLiveActivityModel({
     required this.value,
     required this.trend,
     required this.timestamp,
-    required this.emoji,
+    required this.trendColor,
     required this.trendArrow,
     required this.readings,
   });
@@ -23,7 +23,7 @@ class GlucoseLiveActivityModel {
       value: readings.last.value,
       trend: readings.last.trend,
       timestamp: readings.last.timestamp,
-      emoji: readings.last.emoji,
+      trendColor: readings.last.trendColor,
       trendArrow: readings.last.trendArrow,
       readings: readings.sublist(start).map((reading) => reading.value).toList(),
     );
@@ -40,7 +40,7 @@ class GlucoseLiveActivityModel {
       value: value ?? this.value,
       trend: trend ?? this.trend,
       timestamp: timestamp ?? this.timestamp,
-      emoji: emoji ?? this.emoji,
+      trendColor: emoji ?? this.trendColor,
       trendArrow: trendArrow ?? this.trendArrow,
       readings: readings,
     );
@@ -51,7 +51,7 @@ class GlucoseLiveActivityModel {
       'value': value,
       'trend': trend,
       'timestamp': timestamp.millisecondsSinceEpoch,
-      'emoji': emoji,
+      'trendColor': trendColor,
       'trendArrow': trendArrow,
       'readings': readings.map((reading) => reading).toList(),
     };

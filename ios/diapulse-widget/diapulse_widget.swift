@@ -21,87 +21,115 @@ struct LiveActivitiesAppAttributes: ActivityAttributes, Identifiable {
 
 let sharedDefault = UserDefaults(suiteName: "group.diapulse")!
 
+struct TrendLineChart: View {
+    let readings: [Double]
+    let width: CGFloat
+    let height: CGFloat
+
+    var body: some View {
+        GeometryReader { geometry in
+            Path { path in
+                guard readings.count > 1 else { return }
+
+                let xStep = width / CGFloat(readings.count - 1)
+                let yScale = height / (readings.max()! - readings.min()!)
+
+                path.move(to: CGPoint(x: 0, y: height - (readings[0] - readings.min()!) * yScale))
+
+                for i in 1..<readings.count {
+                    let x = CGFloat(i) * xStep
+                    let y = height - (readings[i] - readings.min()!) * yScale
+                    path.addLine(to: CGPoint(x: x, y: y))
+                }
+            }
+            .stroke(Color.white, lineWidth: 2)
+        }
+        .frame(width: width, height: height)
+    }
+}
+
+func getColor(from string: String) -> Color {
+    switch string.lowercased() {
+    case "red":
+        return .red
+    case "orange":
+        return .orange
+    case "green":
+        return .green
+    default:
+        return .white // Default color if the string doesn't match
+    }
+}
+
 @available(iOSApplicationExtension 16.1, *)
 struct GlucoseMonitorApp: Widget {
   var body: some WidgetConfiguration {
     ActivityConfiguration(for: LiveActivitiesAppAttributes.self) { context in
       let value = sharedDefault.double(forKey: context.attributes.prefixedKey("value"))
       let trend = sharedDefault.string(forKey: context.attributes.prefixedKey("trend")) ?? "→"
-      let emoji = sharedDefault.string(forKey: context.attributes.prefixedKey("emoji")) ?? "🟢"
+      let trendArrow = sharedDefault.string(forKey: context.attributes.prefixedKey("trendArrow")) ?? "→"
+      let trendColor = sharedDefault.string(forKey: context.attributes.prefixedKey("trendColor")) ?? "green"
       let timestamp = Date(timeIntervalSince1970: sharedDefault.double(forKey: context.attributes.prefixedKey("timestamp")) / 1000)
       let readings = sharedDefault.array(forKey: context.attributes.prefixedKey("readings")) as? [Double] ?? []
-      
+
+
+
       ZStack {
         LinearGradient(colors: [Color.black.opacity(0.5), Color.black.opacity(0.3)], startPoint: .topLeading, endPoint: .bottom)
-        
-        VStack(spacing: 10) {
+
+        VStack(spacing: 5) {
           HStack {
+            TrendLineChart(readings: readings, width: 150, height: 30)
             Text("\(Int(value))")
               .font(.system(size: 60, weight: .bold))
-            Text("mg/dL")
+            Text(trendArrow)
               .font(.system(size: 20))
               .offset(y: 10)
           }
-          
-          HStack(spacing: 20) {
-            Text(emoji)
-              .font(.system(size: 40))
-            Text(trend)
-              .font(.system(size: 40))
-          }
-          
+
           Text(timestamp, style: .time)
             .font(.system(size: 16))
 
-          Link(destination: URL(string: "la://my.app/glucose")!) {
-            Text("See details 📊")
-              .font(.system(size: 14))
-              .padding(.vertical, 5)
-              .padding(.horizontal, 10)
-              .background(Color.blue.opacity(0.6))
-              .cornerRadius(8)
-          }
         }
       }
       .frame(height: 160)
     } dynamicIsland: { context in
       let value = sharedDefault.double(forKey: context.attributes.prefixedKey("value"))
       let trend = sharedDefault.string(forKey: context.attributes.prefixedKey("trend")) ?? "→"
-      let emoji = sharedDefault.string(forKey: context.attributes.prefixedKey("emoji")) ?? "🟢"
+      let trendArrow = sharedDefault.string(forKey: context.attributes.prefixedKey("trendArrow")) ?? "→"
+      let trendColor = sharedDefault.string(forKey: context.attributes.prefixedKey("trendColor")) ?? "green"
       let timestamp = Date(timeIntervalSince1970: sharedDefault.double(forKey: context.attributes.prefixedKey("timestamp")) / 1000)
+      let readings = sharedDefault.array(forKey: context.attributes.prefixedKey("readings")) as? [Double] ?? []
 
       return DynamicIsland {
         DynamicIslandExpandedRegion(.leading) {
-          Text(emoji)
+          Text(trendArrow)
             .font(.system(size: 40))
         }
         DynamicIslandExpandedRegion(.trailing) {
-          Text(trend)
+          Text(trendArrow)
             .font(.system(size: 40))
         }
         DynamicIslandExpandedRegion(.center) {
-          VStack {
+          VStack(spacing: 5) {
             Text("\(Int(value)) mg/dL")
               .font(.system(size: 30, weight: .bold))
+            TrendLineChart(readings: readings, width: 100, height: 20)
             Text(timestamp, style: .time)
               .font(.system(size: 16))
-            Link(destination: URL(string: "la://my.app/glucose")!) {
-              Text("See details")
-                .font(.system(size: 12))
-                .padding(.vertical, 3)
-                .padding(.horizontal, 8)
-                .background(Color.blue.opacity(0.6))
-                .cornerRadius(6)
-            }
           }
         }
       } compactLeading: {
-        Text(emoji)
-      } compactTrailing: {
         Text("\(Int(value))")
           .font(.system(size: 20, weight: .bold))
+      } compactTrailing: {
+         Text(trendArrow)
+          .font(.system(size: 20, weight: .bold))
+          .foregroundColor(getColor(from: trendColor))
       } minimal: {
-        Text(emoji)
+        Text("\(Int(value))"+trendArrow)
+          .font(.system(size: 20, weight: .bold))
+          .foregroundColor(getColor(from: trendColor))
       }
     }
   }
