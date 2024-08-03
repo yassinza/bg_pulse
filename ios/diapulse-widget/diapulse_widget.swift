@@ -29,6 +29,7 @@ struct GlucoseMonitorApp: Widget {
       let trend = sharedDefault.string(forKey: context.attributes.prefixedKey("trend")) ?? "→"
       let emoji = sharedDefault.string(forKey: context.attributes.prefixedKey("emoji")) ?? "🟢"
       let timestamp = Date(timeIntervalSince1970: sharedDefault.double(forKey: context.attributes.prefixedKey("timestamp")) / 1000)
+      let readings = sharedDefault.array(forKey: context.attributes.prefixedKey("readings")) as? [Double] ?? []
       
       ZStack {
         LinearGradient(colors: [Color.black.opacity(0.5), Color.black.opacity(0.3)], startPoint: .topLeading, endPoint: .bottom)

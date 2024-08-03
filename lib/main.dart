@@ -253,39 +253,31 @@ class _HomeState extends State<Home> {
     );
   }
 
-Future<void> _startGlucoseLiveActivity() async {
-  if (_readings.isEmpty) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('No glucose readings available.')),
-    );
-    return;
+  Future<void> _startGlucoseLiveActivity() async {
+    if (_readings.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('No glucose readings available.')),
+      );
+      return;
+    }
+
+    final activityAttributes =
+        GlucoseLiveActivityModel.fromReadings(_readings).toMap();
+
+    final activityId =
+        await _liveActivitiesPlugin.createActivity(activityAttributes);
+    setState(() => _latestActivityId = activityId);
   }
 
-  final reading = _readings.last;
-  final activityAttributes = {
-    'value': reading.value,
-    'trend': reading.trendArrow,
-    'emoji': reading.emoji,
-    'timestamp': reading.timestamp.millisecondsSinceEpoch,
-  };
+  Future<void> _updateGlucoseLiveActivity() async {
+    if (_latestActivityId == null || _readings.isEmpty) {
+      return;
+    }
 
-  final activityId = await _liveActivitiesPlugin.createActivity(activityAttributes);
-  setState(() => _latestActivityId = activityId);
-}
+    final activityAttributes =
+        GlucoseLiveActivityModel.fromReadings(_readings).toMap();
 
-Future<void> _updateGlucoseLiveActivity() async {
-  if (_latestActivityId == null || _readings.isEmpty) {
-    return;
+    await _liveActivitiesPlugin.updateActivity(
+        _latestActivityId!, activityAttributes);
   }
-
-  final reading = _readings.last;
-  final activityAttributes = {
-    'value': reading.value,
-    'trend': reading.trendArrow,
-    'emoji': reading.emoji,
-    'timestamp': reading.timestamp.millisecondsSinceEpoch,
-  };
-
-  await _liveActivitiesPlugin.updateActivity(_latestActivityId!, activityAttributes);
-}
 }

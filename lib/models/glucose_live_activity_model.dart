@@ -6,6 +6,7 @@ class GlucoseLiveActivityModel {
   final DateTime timestamp;
   final String emoji;
   final String trendArrow;
+  final List<double> readings; //last 5 readings
 
   GlucoseLiveActivityModel({
     required this.value,
@@ -13,26 +14,19 @@ class GlucoseLiveActivityModel {
     required this.timestamp,
     required this.emoji,
     required this.trendArrow,
+    required this.readings,
   });
 
-  factory GlucoseLiveActivityModel.fromReading(GlucoseReading reading) {
+  factory GlucoseLiveActivityModel.fromReadings(List<GlucoseReading> readings) {
+    int start = readings.length >= 5 ? readings.length - 5 : 0;
     return GlucoseLiveActivityModel(
-      value: reading.value,
-      trend: reading.trend,
-      timestamp: reading.timestamp,
-      emoji: reading.emoji,
-      trendArrow: reading.trendArrow,
+      value: readings.last.value,
+      trend: readings.last.trend,
+      timestamp: readings.last.timestamp,
+      emoji: readings.last.emoji,
+      trendArrow: readings.last.trendArrow,
+      readings: readings.sublist(start).map((reading) => reading.value).toList(),
     );
-  }
-
-  Map<String, dynamic> toMap() {
-    return {
-      'value': value,
-      'trend': trend,
-      'timestamp': timestamp.toIso8601String(),
-      'emoji': emoji,
-      'trendArrow': trendArrow,
-    };
   }
 
   GlucoseLiveActivityModel copyWith({
@@ -48,6 +42,18 @@ class GlucoseLiveActivityModel {
       timestamp: timestamp ?? this.timestamp,
       emoji: emoji ?? this.emoji,
       trendArrow: trendArrow ?? this.trendArrow,
+      readings: readings,
     );
+  }
+
+  Map<String, dynamic> toMap() {
+    return {
+      'value': value,
+      'trend': trend,
+      'timestamp': timestamp.millisecondsSinceEpoch,
+      'emoji': emoji,
+      'trendArrow': trendArrow,
+      'readings': readings.map((reading) => reading).toList(),
+    };
   }
 }

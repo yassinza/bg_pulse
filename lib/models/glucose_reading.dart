@@ -21,6 +21,16 @@ class GlucoseReading {
     );
   }
 
+  // to map
+  Map<String, dynamic> toMap() {
+    return {
+      'timestamp': timestamp.millisecondsSinceEpoch,
+      'value': value,
+      'trend': trend,
+    };
+  }
+
+
   static String _determineTrend(int? trendArrow) {
     switch (trendArrow) {
       case 1:
