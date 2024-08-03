@@ -1,10 +1,10 @@
 import 'dart:async';
 
+import 'package:bg_pulse/services/libre_service.dart';
 import 'package:flutter/material.dart';
 import 'package:live_activities/live_activities.dart';
-import 'package:live_activities/models/live_activity_image.dart';
 import 'package:live_activities/models/url_scheme_data.dart';
-import 'package:live_activities_example/services/libre_service.dart';
+
 
 import 'models/glucose_live_activity_model.dart';
 import 'models/glucose_reading.dart';
@@ -47,7 +47,6 @@ class _HomeState extends State<Home> {
   final _liveActivitiesPlugin = LiveActivities();
   String? _latestActivityId;
   StreamSubscription<UrlSchemeData>? urlSchemeSubscription;
-  GlucoseLiveActivityModel? _glucoseLiveActivityModel;
 
   @override
   void initState() {
@@ -155,7 +154,7 @@ class _HomeState extends State<Home> {
     return Scaffold(
       appBar: AppBar(
         title: const Text(
-          'Glucose Live Activities',
+          'BG Pulse',
           style: TextStyle(
             fontSize: 19,
             color: Colors.white,
