@@ -30,7 +30,7 @@
 			containerPortal = 97C146E61CF9000F007C117D /* Project object */;
 			proxyType = 1;
 			remoteGlobalIDString = 27C0558128E42F5700BA744B;
-			remoteInfo = "diapulse_widget";
+			remoteInfo = diapulse_widget;
 		};
 /* End PBXContainerItemProxy section */
 
@@ -62,7 +62,7 @@
 		1498D2321E8E86230040F4C2 /* GeneratedPluginRegistrant.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = GeneratedPluginRegistrant.h; sourceTree = "<group>"; };
 		1498D2331E8E89220040F4C2 /* GeneratedPluginRegistrant.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GeneratedPluginRegistrant.m; sourceTree = "<group>"; };
 		27507C0F29227ECA00FD6B35 /* diapulse_widget.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = diapulse_widget.entitlements; sourceTree = "<group>"; };
-		27C0558228E42F5700BA744B /* diapulse_widget.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = "diapulse_widget.appex"; sourceTree = BUILT_PRODUCTS_DIR; };
+		27C0558228E42F5700BA744B /* diapulse_widget.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = diapulse_widget.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		27C0558428E42F5700BA744B /* WidgetKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WidgetKit.framework; path = System/Library/Frameworks/WidgetKit.framework; sourceTree = SDKROOT; };
 		27C0558628E42F5700BA744B /* SwiftUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SwiftUI.framework; path = System/Library/Frameworks/SwiftUI.framework; sourceTree = SDKROOT; };
 		27C0558928E42F5700BA744B /* diapulse_widget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = diapulse_widget.swift; sourceTree = "<group>"; };
@@ -203,8 +203,8 @@
 			);
 			dependencies = (
 			);
-			name = "diapulse_widget";
-			productName = "diapulse_widget";
+			name = diapulse_widget;
+			productName = diapulse_widget;
 			productReference = 27C0558228E42F5700BA744B /* diapulse_widget.appex */;
 			productType = "com.apple.product-type.app-extension";
 		};
@@ -478,6 +478,8 @@
 				DEVELOPMENT_TEAM = GY5M822B6T;
 				ENABLE_BITCODE = NO;
 				INFOPLIST_FILE = Runner/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = "BG Pulse";
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.healthcare-fitness";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -501,7 +503,7 @@
 				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
 				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
 				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
-				CODE_SIGN_ENTITLEMENTS = "diapulse_widget.entitlements";
+				CODE_SIGN_ENTITLEMENTS = diapulse_widget.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = GY5M822B6T;
@@ -542,7 +544,7 @@
 				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
 				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
 				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
-				CODE_SIGN_ENTITLEMENTS = "diapulse_widget.entitlements";
+				CODE_SIGN_ENTITLEMENTS = diapulse_widget.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = GY5M822B6T;
@@ -580,7 +582,7 @@
 				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
 				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
 				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
-				CODE_SIGN_ENTITLEMENTS = "diapulse_widget.entitlements";
+				CODE_SIGN_ENTITLEMENTS = diapulse_widget.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = GY5M822B6T;
@@ -726,6 +728,8 @@
 				DEVELOPMENT_TEAM = GY5M822B6T;
 				ENABLE_BITCODE = NO;
 				INFOPLIST_FILE = Runner/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = "BG Pulse";
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.healthcare-fitness";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -751,6 +755,8 @@
 				DEVELOPMENT_TEAM = GY5M822B6T;
 				ENABLE_BITCODE = NO;
 				INFOPLIST_FILE = Runner/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = "BG Pulse";
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.healthcare-fitness";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
