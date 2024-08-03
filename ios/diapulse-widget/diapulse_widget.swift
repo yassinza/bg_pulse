@@ -28,26 +28,37 @@ struct TrendLineChart: View {
 
     var body: some View {
         GeometryReader { geometry in
-            Path { path in
-                guard readings.count > 1 else { return }
-
-                let xStep = width / CGFloat(readings.count - 1)
-                let yScale = height / (readings.max()! - readings.min()!)
-
-                path.move(to: CGPoint(x: 0, y: height - (readings[0] - readings.min()!) * yScale))
-
-                for i in 1..<readings.count {
-                    let x = CGFloat(i) * xStep
-                    let y = height - (readings[i] - readings.min()!) * yScale
-                    path.addLine(to: CGPoint(x: x, y: y))
+            ZStack {
+                // Dotted line as x-axis
+                Path { path in
+                    path.move(to: CGPoint(x: 0, y: height))
+                    path.addLine(to: CGPoint(x: width, y: height))
                 }
+                .stroke(style: StrokeStyle(lineWidth: 1, dash: [5]))
+                .foregroundColor(.white.opacity(0.5))
+
+                // Trend line
+                Path { path in
+                    guard readings.count > 1 else { return }
+
+                    let xStep = width / CGFloat(readings.count - 1)
+                    let yScale = height / (readings.max()! - readings.min()!)
+
+                    // Start from the left (earliest reading)
+                    path.move(to: CGPoint(x: 0, y: height - (readings[0] - readings.min()!) * yScale))
+
+                    for i in 1..<readings.count {
+                        let x = CGFloat(i) * xStep
+                        let y = height - (readings[i] - readings.min()!) * yScale
+                        path.addLine(to: CGPoint(x: x, y: y))
+                    }
+                }
+                .stroke(Color.white, lineWidth: 2)
             }
-            .stroke(Color.white, lineWidth: 2)
         }
         .frame(width: width, height: height)
     }
 }
-
 func getColor(from string: String) -> Color {
     switch string.lowercased() {
     case "red":
