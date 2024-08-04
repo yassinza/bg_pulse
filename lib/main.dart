@@ -4,14 +4,57 @@ import 'package:bg_pulse/services/libre_service.dart';
 import 'package:flutter/material.dart';
 import 'package:live_activities/live_activities.dart';
 import 'package:live_activities/models/url_scheme_data.dart';
-
+import 'package:workmanager/workmanager.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import 'models/glucose_live_activity_model.dart';
 import 'models/glucose_reading.dart';
 import 'widgets/glucose_widget.dart';
 
+const iOSBackgroundAppRefresh =
+    "be.tramckrijte.workmanagerExample.iOSBackgroundAppRefresh";
+
 void main() {
-  runApp(const MyApp());
+  runApp(MyApp());
+}
+
+// Pragma is mandatory if the App is obfuscated or using Flutter 3.1+
+@pragma('vm:entry-point')
+void callbackDispatcher() {
+  Workmanager().executeTask((task, inputData) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.reload();
+
+    print("$task started. inputData = $inputData");
+    await prefs.setString(task, 'Last ran at: ${DateTime.now().toString()}');
+    // print("Bool from prefs: ${prefs.getBool("test")}");
+
+    switch (task) {
+      case iOSBackgroundAppRefresh:
+        // To test, follow the instructions on https://developer.apple.com/documentation/backgroundtasks/starting_and_terminating_tasks_during_development
+        // and https://github.com/fluttercommunity/flutter_workmanager/blob/main/IOS_SETUP.md
+        print("iOS Background fetch running...");
+        // update readings
+        final libreConnection = LibreLinkUpConnection(
+            'yassin.z.aa@gmail.com', 'Vub7n2tx768QKN8g2gvM');
+        final readings = await libreConnection.processFetch();
+        final liveActivitiesPlugin = LiveActivities();
+        final activityAttributes =
+            GlucoseLiveActivityModel.fromReadings(readings).toMap();
+        final latestActivityId = prefs.getString("latestActivityId");
+        if (latestActivityId != null) {
+          await liveActivitiesPlugin.updateActivity(
+              latestActivityId, activityAttributes);
+        }
+        // Save latest activity id
+        prefs.setString("latestActivityId", latestActivityId!);
+        break;
+      default:
+        return Future.value(false);
+    }
+
+    return Future.value(true);
+  });
 }
 
 class MyApp extends StatefulWidget {
@@ -43,6 +86,7 @@ class _HomeState extends State<Home> {
   bool _isConnecting = false;
   bool _isConnected = false;
   late Timer _timer;
+  bool workmanagerInitialized = false;
 
   final _liveActivitiesPlugin = LiveActivities();
   String? _latestActivityId;
@@ -184,6 +228,22 @@ class _HomeState extends State<Home> {
               if (_latestActivityId == null)
                 TextButton(
                   onPressed: () async {
+                    print("Starting glucose monitoring");
+                    if (!workmanagerInitialized) {
+                      Workmanager().initialize(
+                        callbackDispatcher,
+                        isInDebugMode: true,
+                      );
+                      setState(() => workmanagerInitialized = true);
+                    }
+                    print("Registering periodic task");
+                    await Workmanager().registerPeriodicTask(
+                      iOSBackgroundAppRefresh,
+                      iOSBackgroundAppRefresh,
+                      initialDelay: Duration(seconds: 10),
+                      inputData: <String, dynamic>{}, //ignored on iOS
+                    );
+
                     await _startGlucoseLiveActivity();
                   },
                   child: const Column(
@@ -266,6 +326,9 @@ class _HomeState extends State<Home> {
     final activityId =
         await _liveActivitiesPlugin.createActivity(activityAttributes);
     setState(() => _latestActivityId = activityId);
+    // save the latest activity
+    final prefs = await SharedPreferences.getInstance();
+    prefs.setString("latestActivityId", activityId!);
   }
 
   Future<void> _updateGlucoseLiveActivity() async {
